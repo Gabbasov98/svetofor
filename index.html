@@ -752,7 +752,8 @@
             geometry: {
                 type: "Point",
                 coordinates: el
-            }
+            },
+            "options": {"iconColor": "#FFDB06", "preset": "islands#blueCircleIcon"}
         }
         markers.push(point)
     })
@@ -771,9 +772,45 @@
             clusterize: true
         });
 
-        // Добавить маркеры на карту
+        var customClusterIconLayout = ymaps.templateLayoutFactory.createClass(
+            '<div class="balloon__icon">$[properties.geoObjects.length]</div>'),
+            clusterIcons = [
+                {
+                    href: 'map_bubble.svg',
+                    size: [75, 75],
+                    // Отступ, чтобы центр картинки совпадал с центром кластера.
+                    offset: [-23, -55]
+                }],
+            customItemContentLayout = ymaps.templateLayoutFactory.createClass(
+                // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
+                '<h2 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h2>' +
+                '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>' +
+                '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }}</div>'
+            );
+        var customPlacemarkLayout = ymaps.templateLayoutFactory.createClass(
+            '<div class=placemark_layout_container>{{ properties.cost }}</div>'
+        );
+        // Создаем собственный макет с информацией о выбранном геообъекте.
+        var customBalloonContentLayout = ymaps.templateLayoutFactory.createClass([
+            '<h2 class=ballon_header>{{ properties.rooms }}</h2>'
+        ].join(''));
+
         myMap.geoObjects.add(objectManager);
         objectManager.add({type: "FeatureCollection",  "features": markers});
+        objectManager.objects.options.set({
+            iconLayout: customPlacemarkLayout,
+            iconShape: {
+                type: 'Rectangle',
+                coordinates: [
+                    [-70, -60], [70, 0]
+                ]
+            },
+            balloonContentLayout: customBalloonContentLayout,
+        });
+        objectManager.clusters.options.set({
+            clusterIcons: clusterIcons,
+            clusterIconContentLayout: customClusterIconLayout,
+        });
 
     }
 </script>
